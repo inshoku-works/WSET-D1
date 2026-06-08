@@ -224,11 +224,12 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;
   width:100%;font-family:'Noto Sans JP',sans-serif;
   box-shadow:var(--shadow);
 }
-.opt:hover:not(:disabled){border-color:var(--ac2);background:var(--ac-light);transform:translateY(-1px)}
+@media(hover:hover)and(pointer:fine){.opt:hover:not(:disabled){border-color:var(--ac2);background:var(--ac-light);transform:translateY(-1px)}}
 .opt:active{transform:scale(.99)}
 .opt.correct{border-color:var(--ok)!important;background:var(--ok-light)!important;color:#14532d!important}
 .opt.wrong  {border-color:var(--dn)!important;background:var(--dn-light)!important;color:#7f1d1d!important}
-.opt.selected{border-color:var(--ac);background:var(--ac-light)}
+.opt.selected{border-color:var(--ac);border-width:2px;background:var(--ac-light);color:var(--ac);font-weight:700;padding:13px 15px 13px 16px}
+.opt.selected::after{content:'✓';float:right;margin-left:8px;font-size:15px;font-weight:800}
 .opt:disabled{cursor:default}
 .vocab-opts .opt{text-align:center;font-size:16px;padding:16px}
 
@@ -8204,7 +8205,8 @@ function renderQ(){
     <input class="fill-inp" id="fi" type="text" placeholder="${q.req && q.req.length>0 ? '例: '+q.req.slice(0,2).join(' / ') : 'Answer here...'}" onkeydown="if(event.key==='Enter')doFill()">
     <button class="sub-btn" onclick="doFill()">答え合わせ / Check →</button>`;
   }else if(q.type==='order'){
-    orderItems=[...q.items];
+    const _correct=q.ans.map(i=>q.items[i]);
+    do{orderItems=[...q.items];for(let _i=orderItems.length-1;_i>0;_i--){const _j=Math.floor(Math.random()*(_i+1));[orderItems[_i],orderItems[_j]]=[orderItems[_j],orderItems[_i]];}}while(JSON.stringify(orderItems)===JSON.stringify(_correct));
     h+=`<div class="q-hint">※タップして選択→タップして移動（またはドラッグ）</div>
     <div class="order-list" id="ol">${orderItems.map((it,i)=>`<div class="oi" draggable="true" data-i="${i}"
       ondragstart="odS(event,${i})" ondragover="odO(event,${i})" ondrop="odD(event,${i})" onclick="odT(${i})">
@@ -8212,7 +8214,7 @@ function renderQ(){
     </div>`).join('')}</div>
     <button class="sub-btn" onclick="doOrder()">順番を確認 / Check order →</button>`;
   }else if(q.type==='multi'){
-    h+=`<div class="q-hint">※正しいものをすべて選択 / Select all that apply</div>
+    h+=`<div class="q-hint">※正しいものをすべて選択（もう一度タップで解除） / Select all that apply · tap again to deselect</div>
     <div class="opts" id="opts">${q.opts.map((o,i)=>`<button class="opt" id="mo${i}" onclick="doToggle(${i})">${o}</button>`).join('')}</div>
     <button class="sub-btn" onclick="doMulti()">答え合わせ / Check →</button>`;
   }
