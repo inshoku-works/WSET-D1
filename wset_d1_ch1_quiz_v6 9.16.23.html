@@ -8361,7 +8361,7 @@ function doOrder(){
   document.querySelector('.sub-btn').style.display='none';
   showFb(ok,q.exp,q.ans.map((i,n)=>`${n+1}. ${q.items[i]}`).join('<br>'));
 }
-function nextQ(){cur++;renderQ();}
+function nextQ(){cur++;renderQ();window.scrollTo(0,0);}
 
 // =============================================
 // RESULT
