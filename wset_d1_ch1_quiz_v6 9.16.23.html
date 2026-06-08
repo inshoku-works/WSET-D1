@@ -290,6 +290,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',sans-serif;
 
 /* FEEDBACK */
 .fb{border-radius:var(--r);padding:16px 16px;margin-top:14px;font-size:14px;line-height:1.8}
+#fb{scroll-margin-top:66px;scroll-margin-bottom:160px}
 .fb.correct{background:var(--ok-light);border:1.5px solid #86efac;color:#14532d}
 .fb.wrong  {background:var(--dn-light);border:1.5px solid #fca5a5;color:#7f1d1d}
 .fb .fbl{font-weight:700;margin-bottom:6px;font-size:14px;display:flex;align-items:center;gap:6px}
@@ -8258,7 +8259,7 @@ function showFb(ok, exp, cans){
   document.getElementById('fb').innerHTML=h;
   document.getElementById('nw').classList.add('vis');
   document.getElementById('nb').textContent=cur+1<deck.length?'次の問題 →':'結果を見る →';
-  setTimeout(()=>document.getElementById('fb').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
+  setTimeout(()=>document.getElementById('fb').scrollIntoView({behavior:'smooth',block:'start'}),80);
 }
 
 function doMC(i){
