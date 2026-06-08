@@ -8220,6 +8220,7 @@ function renderQ(){
   }
   h+=`<div id="fb"></div></div>`;
   document.getElementById('main').innerHTML=h;
+  if(q.type==='order') _initOrderTouch();
   document.getElementById('hsc').textContent=score;
   if(q.type==='fill')setTimeout(()=>{const el=document.getElementById('fi');if(el)el.focus()},80);
 }
@@ -8352,8 +8353,10 @@ function odD(e,i){
 }
 function odT(i){
   if(answered)return;
+  if(_otFromTap){_otFromTap=false;} // called from touch → skip synthetic click
+  else if(_otIdx!==-1)return;       // touch in progress → ignore stale click
   const items=document.querySelectorAll('.oi');
-  if(tapSel===-1){tapSel=i;items[i].classList.add('tap-sel');}
+  if(tapSel===-1){tapSel=i;if(items[i])items[i].classList.add('tap-sel');}
   else{
     const tmp=orderItems[tapSel];orderItems.splice(tapSel,1);orderItems.splice(i,0,tmp);
     tapSel=-1;rebuildOL();
@@ -8365,6 +8368,50 @@ function rebuildOL(){
     ondragstart="odS(event,${i})" ondragover="odO(event,${i})" ondrop="odD(event,${i})" onclick="odT(${i})">
     <span class="dh">⋮⋮</span><span class="on">${i+1}</span><span class="ot">${it}</span>
   </div>`).join('');
+  _initOrderTouch();
+}
+// --- touch drag for order questions ---
+let _otIdx=-1,_otDragged=false,_otTarget=-1,_otSX=0,_otSY=0,_otFromTap=false;
+function _otStart(e){
+  if(answered)return;
+  const oi=e.target.closest('.oi');if(!oi)return;
+  _otIdx=parseInt(oi.dataset.i);_otDragged=false;_otTarget=-1;
+  const t=e.touches[0];_otSX=t.clientX;_otSY=t.clientY;
+  oi.classList.add('dragging');
+}
+function _otMove(e){
+  if(_otIdx===-1)return;
+  const t=e.touches[0];
+  const dx=t.clientX-_otSX,dy=t.clientY-_otSY;
+  if(!_otDragged&&Math.sqrt(dx*dx+dy*dy)<8)return;
+  e.preventDefault();
+  _otDragged=true;
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  const oi=el&&el.closest('.oi');
+  document.querySelectorAll('#ol .oi').forEach(x=>x.classList.remove('drag-ov'));
+  if(oi){const ti=parseInt(oi.dataset.i);if(ti!==_otIdx){oi.classList.add('drag-ov');_otTarget=ti;}else _otTarget=-1;}
+  else _otTarget=-1;
+}
+function _otEnd(e){
+  document.querySelectorAll('#ol .oi').forEach(x=>{x.classList.remove('drag-ov');x.classList.remove('dragging');});
+  if(!_otDragged){
+    // tap: delegate to odT but flag to suppress the synthetic click
+    _otFromTap=true;odT(_otIdx);
+  }else if(_otTarget!==-1&&_otTarget!==_otIdx){
+    const tmp=orderItems[_otIdx];orderItems.splice(_otIdx,1);orderItems.splice(_otTarget,0,tmp);
+    tapSel=-1;rebuildOL();
+    e.preventDefault();
+  }
+  _otIdx=-1;_otDragged=false;_otTarget=-1;
+}
+function _initOrderTouch(){
+  const ol=document.getElementById('ol');if(!ol)return;
+  ol.removeEventListener('touchstart',_otStart);
+  ol.removeEventListener('touchmove',_otMove);
+  ol.removeEventListener('touchend',_otEnd);
+  ol.addEventListener('touchstart',_otStart,{passive:true});
+  ol.addEventListener('touchmove',_otMove,{passive:false});
+  ol.addEventListener('touchend',_otEnd,{passive:false});
 }
 function doOrder(){
   if(answered)return;
